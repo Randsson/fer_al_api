@@ -105,15 +105,35 @@ class Api::V1::EventsController < Api::V1::BaseController
     )
   end
 
+  # GET /api/v1/events/interested
+  def interested
+    # Buscar eventos que o usuário marcou como interesse
+    interested_event_ids = current_user.user_event_interests.interested.pluck(:event_id)
+    events = Event.published.where(id: interested_event_ids).includes(:category, :user, :event_images)
+    events = paginate_collection(events)
+    
+    render_success(
+      events.map { |event| event_response(event) },
+      'Eventos de interesse'
+    )
+  end
+
   # POST /api/v1/events/:id/toggle_interest
   def toggle_interest
     interest = current_user.user_event_interests.find_or_initialize_by(event: @event)
     
-    if interest.persisted?
-      interest.update(interested: !interest.interested)
+    # Determinar o novo estado
+    new_interested_state = if interest.persisted?
+      !interest.interested
     else
-      interest.update(interested: true)
+      true
     end
+    
+    # Atualizar o registro
+    interest.update!(interested: new_interested_state)
+    
+    # Recarregar para garantir que temos o estado mais atual
+    interest.reload
     
     message = interest.interested? ? 'Interesse adicionado' : 'Interesse removido'
     render_success({ interested: interest.interested }, message)
@@ -189,9 +209,13 @@ class Api::V1::EventsController < Api::V1::BaseController
       updated_at: event.updated_at
     }
 
+    # Sempre incluir informações de interesse se o usuário estiver logado
+    if current_user
+      response[:user_interested] = current_user.user_event_interests.find_by(event: event)&.interested || false
+    end
+
     if detailed
       response[:interested_users_count] = event.user_event_interests.interested.count
-      response[:user_interested] = current_user&.user_event_interests&.find_by(event: event)&.interested || false
     end
 
     response

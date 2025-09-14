@@ -16,14 +16,13 @@ class Event < ApplicationRecord
   validates :description, presence: true
   validates :start_date, presence: true
   validates :end_date, presence: true
-  validates :latitude, :longitude, presence: true
   validates :address, presence: true
   validates :status, presence: true
   validate :end_date_after_start_date
 
-  # Geocoding
+  # Geocoding (opcional)
   geocoded_by :address
-  after_validation :geocode, if: ->(obj){ obj.address.present? and obj.address_changed? }
+  # Removido o callback automático - geocodificação será feita manualmente se necessário
 
   # Scopes
   scope :published, -> { where(status: :published) }
@@ -32,7 +31,9 @@ class Event < ApplicationRecord
   scope :past, -> { where('end_date < ?', Time.current) }
   scope :featured, -> { where(featured: true) }
   scope :by_category, ->(category_id) { where(category_id: category_id) }
-  scope :near_location, ->(latitude, longitude, distance = 10) { near([latitude, longitude], distance) }
+  scope :near_location, ->(latitude, longitude, distance = 10) { 
+    where.not(latitude: nil, longitude: nil).near([latitude, longitude], distance) 
+  }
 
   def duration_in_hours
     return 0 unless start_date && end_date

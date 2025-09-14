@@ -27,6 +27,7 @@ Rails.application.routes.draw do
           get 'search'
           get 'featured'
           get 'upcoming'
+          get 'interested'
         end
 
         # Nested reviews
