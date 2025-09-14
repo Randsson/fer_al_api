@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_09_003626) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_13_212631) do
   create_table "categories", force: :cascade do |t|
     t.string "name"
     t.text "description"
@@ -34,8 +34,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_09_003626) do
     t.text "description", null: false
     t.datetime "start_date", null: false
     t.datetime "end_date", null: false
-    t.decimal "latitude", precision: 10, scale: 6, null: false
-    t.decimal "longitude", precision: 10, scale: 6, null: false
+    t.decimal "latitude", precision: 10, scale: 6
+    t.decimal "longitude", precision: 10, scale: 6
     t.text "address", null: false
     t.integer "status", default: 0, null: false
     t.boolean "featured", default: false
